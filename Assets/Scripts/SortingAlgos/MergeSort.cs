@@ -9,68 +9,116 @@ namespace Sowtank.Collections.Sorting
     //
     // Cuándo usarlo:
     //   ✓ Cuando se necesita rendimiento GARANTIZADO — siempre O(n log n)
-    //   ✓ Ordenamiento estable para datos con múltiples claves (ej: ordenar por apellido,
-    //     luego por nombre, manteniendo el orden anterior)
-    //   ✓ Listas enlazadas (no necesita acceso aleatorio, a diferencia de QuickSort)
-    //   ✗ Memoria limitada — requiere O(n) espacio extra
+    //   ✓ Ordenamiento estable para datos con múltiples claves
+    //   ✓ Muy útil para listas enlazadas
+    //   ✗ Requiere memoria adicional O(n)
     //
-    // Mejor: O(n log n) | Promedio: O(n log n) | Peor: O(n log n) | Espacio: O(n) | Estable: Sí
+    // Complejidad:
+    //   Mejor caso:   O(n log n)
+    //   Caso promedio:O(n log n)
+    //   Peor caso:    O(n log n)
+    //   Espacio:      O(n)
+    //   Estable:      Sí
     public static class MergeSort
     {
         public static void Sort<T>(T[] arr) where T : IComparable<T>
         {
-            if (arr.Length <= 1) return;
+            if (arr == null || arr.Length <= 1)
+                return;
+
             SortRecursive(arr, 0, arr.Length - 1);
         }
 
-        private static void SortRecursive(T[] arr, int left, int right)
+        private static void SortRecursive<T>(T[] arr, int left, int right)
+            where T : IComparable<T>
         {
-            if (left >= right) return; // caso base: subarreglo de 1 elemento
+            // Caso base: un único elemento ya está ordenado
+            if (left >= right)
+                return;
 
-            int mid = left + (right - left) / 2; // evita overflow vs (left+right)/2
+            int mid = left + (right - left) / 2;
 
-            SortRecursive(arr, left, mid);       // ordena mitad izquierda
-            SortRecursive(arr, mid + 1, right);  // ordena mitad derecha
-            Merge(arr, left, mid, right);         // mezcla las dos mitades ordenadas
+            // Ordenar mitad izquierda
+            SortRecursive(arr, left, mid);
+
+            // Ordenar mitad derecha
+            SortRecursive(arr, mid + 1, right);
+
+            // Fusionar ambas mitades ordenadas
+            Merge(arr, left, mid, right);
         }
 
-        // fusiona arr[left..mid] y arr[mid+1..right] en orden
-        private static void Merge(T[] arr, int left, int mid, int right)
+        // Fusiona dos subarreglos ordenados:
+        // arr[left..mid]
+        // arr[mid+1..right]
+        private static void Merge<T>(T[] arr, int left, int mid, int right)
+            where T : IComparable<T>
         {
-            int leftSize  = mid - left + 1;
+            int leftSize = mid - left + 1;
             int rightSize = right - mid;
 
-            // copias temporales de cada mitad
-            T[] leftArr  = new T[leftSize];
+            // Crear arreglos temporales
+            T[] leftArr = new T[leftSize];
             T[] rightArr = new T[rightSize];
 
-            Array.Copy(arr, left,     leftArr,  0, leftSize);
-            Array.Copy(arr, mid + 1,  rightArr, 0, rightSize);
+            // Copiar datos
+            Array.Copy(arr, left, leftArr, 0, leftSize);
+            Array.Copy(arr, mid + 1, rightArr, 0, rightSize);
 
-            int i = 0, j = 0, k = left;
+            int i = 0;      // índice izquierda
+            int j = 0;      // índice derecha
+            int k = left;   // índice arreglo original
 
-            // mezcla comparando el frente de cada mitad
+            // Mezclar comparando elementos de ambas mitades
             while (i < leftSize && j < rightSize)
             {
-                // <= garantiza estabilidad: ante empate, toma el elemento izquierdo primero
+                // <= mantiene estabilidad
                 if (leftArr[i].CompareTo(rightArr[j]) <= 0)
-                    arr[k++] = leftArr[i++];
+                {
+                    arr[k] = leftArr[i];
+                    i++;
+                }
                 else
-                    arr[k++] = rightArr[j++];
+                {
+                    arr[k] = rightArr[j];
+                    j++;
+                }
+
+                k++;
             }
 
-            // copia los elementos restantes (solo uno de los dos tendrá elementos)
-            while (i < leftSize)  arr[k++] = leftArr[i++];
-            while (j < rightSize) arr[k++] = rightArr[j++];
+            // Copiar elementos restantes de la izquierda
+            while (i < leftSize)
+            {
+                arr[k] = leftArr[i];
+                i++;
+                k++;
+            }
+
+            // Copiar elementos restantes de la derecha
+            while (j < rightSize)
+            {
+                arr[k] = rightArr[j];
+                j++;
+                k++;
+            }
         }
 
-        // Caso de uso: ordenar registros de empleados primero por departamento, luego por nombre
-        // MergeSort preserva el orden relativo de registros con la misma clave (estable)
+        // Ejemplo de uso
         public static string[] UseCaseDemo()
         {
-            string[] employees = { "Carlos-IT", "Ana-HR", "Bob-IT", "Diana-HR", "Eve-IT" };
-            Sort(employees); // orden lexicográfico estable
-            return employees; // → Ana-HR, Bob-IT, Carlos-IT, Diana-HR, Eve-IT
+            string[] employees =
+            {
+                "Carlos-IT",
+                "Ana-HR",
+                "Bob-IT",
+                "Diana-HR",
+                "Eve-IT"
+            };
+
+            Sort(employees);
+
+            return employees;
         }
     }
 }
